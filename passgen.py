@@ -1,10 +1,29 @@
-# CLI interface can support next commands:
-# -vvv: Verbose mode (-v |-vv |-vvv )
-# -h: help
 # -S: character set
 import argparse
 import random
 import string
+
+
+def main():
+    """ Password Generator"""
+    parser = argparse.ArgumentParser(prog="passgen",
+                                     description="Utility for generating passwords according to a given template that "
+                                                 "supports the CLI interface",
+                                     epilog="Thanks for using %(prog)s! :)", )
+    simple = parser.add_argument_group("simple method generate random password from set {small literal "
+                                       "ASCII, big literal ASCII, digit}")
+    simple.add_argument('-n', help="Set length of password", type=int, default=8)
+    simple.add_argument("-S", help="define character set, you can use placeholders \\d for digits, \\l for small "
+                                   "literal, \\u for big literal, \\L for combination small and big letters and \\p "
+                                   "for punctuation symbols", default="\\L\\d")
+
+    parser.add_argument("-t", help="Set template for generate passwords", default="LLllddpp")
+    parser.add_argument("-f", help="Getting list of patterns from file and generate for each random password")
+    parser.add_argument("-c", help="number of passwords", type=int, default=1)
+    parser.add_argument("-v", help="set verbosity level", action="count")
+    args = parser.parse_args()
+
+    process_options(args)
 
 
 def process_options(args):
@@ -12,39 +31,16 @@ def process_options(args):
         random_based(args)
 
 
-def main():
-    """ Password Generator"""
-    parser = argparse.ArgumentParser()
-    # parser.add_argument('-n', help="Set length of password and generate random password from set {small lateral "
-    #                                "ASCII, big lateral ASCII, digit}", type=int, default=8)
-    parser.add_argument('/d', action='store_true', help="Use digits 0..9")
-    parser.add_argument('/l', action='store_true', help="Use lowercase letters a..z")
-    parser.add_argument('/u', action='store_true', help="Use uppercase letters A..Z")
-    parser.add_argument('/L', action='store_true', help="Use mixed-case letters a..Z")
-    parser.add_argument('/p', action='store_true', help="Use punctuation characters - ,.;:")
-
-    # parser.add_argument("-t", help="Set template for generate passwords", default="LLllddpp")
-    # parser.add_argument("-f", help="Getting list of patterns from file and generate for each random password")
-    # parser.add_argument("-c", help="number of passwords", type=int, default=1)
-    # parser.add_argument('-h', help="here goes instruction how to use it")
-    args = parser.parse_args()
-
-    process_options(args)
-
-
 def random_based(args):
     charset = ""
-    if args.d:
-        charset = charset + string.digits
-    if args.l:
-        charset = charset + string.ascii_lowercase
-    if args.u:
-        charset = charset + string.ascii_uppercase
-    if args.L:
-        charset = charset + string.ascii_letters
-    if args.p:
-        charset = charset + ",.;:"
-
+    pos = 0
+    while pos < len(args.S):
+        if args.S[pos] == '\\':
+            charset = charset + placeholder2charset(args.S[pos+1])
+            pos = pos + 2
+            continue
+        charset = charset + args.S[pos]
+        pos = pos + 1
     charset = dedup(charset)
     char_source = []
 
@@ -53,15 +49,27 @@ def random_based(args):
     print(generate(char_source))
 
 
-def dedup(chars: str):
+def placeholder2charset(ph: str):
+    if "d" in ph:
+        return string.digits
+    if "l" in ph:
+        return string.ascii_lowercase
+    if "u" in ph:
+        return string.ascii_uppercase
+    if "L" in ph:
+        return string.ascii_letters
+    if "p" in ph:
+        return ",.;:"
 
+
+def dedup(chars: str):
     return list(set(chars))
 
 
 def generate(chr_set_list: list):
     password_lst = []
     for character in chr_set_list:
-        password_lst.append(character[random.randrange(len(character) - 1)])
+        password_lst.append(character[random.randrange(len(character))])
     return "".join(permutate(password_lst))
 
 
