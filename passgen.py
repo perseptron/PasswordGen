@@ -1,11 +1,15 @@
 # -S: character set
 import argparse
+import logging
 import random
 import string
+
+VERBOSITY = (logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG)
 
 
 def main():
     """ Password Generator"""
+
     parser = argparse.ArgumentParser(prog="passgen",
                                      description="Utility for generating passwords according to a given template that "
                                                  "supports the CLI interface",
@@ -20,9 +24,10 @@ def main():
     parser.add_argument("-t", help="Set template for generate passwords", default="LLllddpp")
     parser.add_argument("-f", help="Getting list of patterns from file and generate for each random password")
     parser.add_argument("-c", help="number of passwords", type=int, default=1)
-    parser.add_argument("-v", help="set verbosity level", action="count")
+    parser.add_argument("-v", help="set verbosity level", action="count", default=0)
     args = parser.parse_args()
-
+    logging.basicConfig(level=VERBOSITY[args.v])
+    logging.debug("argparse object = " + str(args))
     process_options(args)
 
 
@@ -32,6 +37,7 @@ def process_options(args):
 
 
 def random_based(args):
+    logging.debug("starting random-based charset generation")
     charset = ""
     pos = 0
     while pos < len(args.S):
@@ -41,6 +47,7 @@ def random_based(args):
             continue
         charset = charset + args.S[pos]
         pos = pos + 1
+
     charset = dedup(charset)
     char_source = []
 
@@ -63,7 +70,10 @@ def placeholder2charset(ph: str):
 
 
 def dedup(chars: str):
-    return list(set(chars))
+    logging.debug("charset before deduplication = " + chars)
+    chars = list(set(chars))
+    logging.debug("charset after deduplication = " + "".join(sorted(chars)))
+    return chars
 
 
 def generate(chr_set_list: list):
@@ -74,6 +84,7 @@ def generate(chr_set_list: list):
 
 
 def permutate(lst: list):
+    logging.debug("permutation")
     return random.sample(lst, len(lst))
 
 
