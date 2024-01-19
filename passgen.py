@@ -92,10 +92,15 @@ def pattern_based(args):
         if charset is None:
             logging.error("wrong template")
             break
-        rep = find_repeat(args.t[pos + 1:])
+        if pos + 1 < len(args.t) and args.t[pos + 1] == "{":
+            rep = find_repeat(args.t[pos + 1:])
+            pos = pos + len(str(rep)) + 3
+        else:
+            rep = 1
+            pos += 1
         for _ in range(rep):
             password.append(generate_char(list(charset)))
-        pos = pos + 1 if rep == 1 else pos + len(str(rep)) + 3
+
     print("".join(password))
     exit(0)
 
