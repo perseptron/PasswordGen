@@ -1,10 +1,9 @@
-# -S: character set
+
 import argparse
 import logging
 import random
 import re
 import string
-import sys
 
 VERBOSITY = (logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG)
 
@@ -58,7 +57,7 @@ def random_based(args):
     for _ in range(args.n):
         password.append(generate_char(charset))
     print("".join(password))
-    sys.exit(0)
+    exit(0)
 
 
 def placeholder2charset(ph: str):
@@ -76,17 +75,36 @@ def placeholder2charset(ph: str):
 
 def pattern_based(args):
     logging.debug("starting pattern-based password generation")
+    charset = None
     password = []
-    charset = ""
     pos = 0
     while pos < len(args.t):
-        charset = placeholder2charset(args.t[pos])
+        if args.t[pos] in "dluLp":
+            charset = placeholder2charset(args.t[pos])
+        if args.t[pos] == "\\":
+            pos += 1
+            charset = args.t[pos]
+        if args.t[pos] == "[":
+            start_pos = pos
+            end_pos = args.t[pos:].find("]")
+            pos = pos + end_pos
+            charset = unbracketing(args.t[start_pos + 1:pos])
+        if charset is None:
+            logging.error("wrong template")
+            break
         rep = find_repeat(args.t[pos + 1:])
         print("res= " + charset + str(rep))
         for _ in range(rep):
-            print(generate_char(list(charset)))
-        pos = pos + 1 if rep == 1 else len(str(rep)) + 3
+            password.append(generate_char(list(charset)))
+        pos = pos + 1 if rep == 1 else pos + len(str(rep)) + 3
         print("position=" + str(pos))
+    print("".join(password))
+    exit(0)
+
+
+def unbracketing(bracket:str):
+    print("bracets=" + bracket)
+    return "*"
 
 
 def find_repeat(st: str):
