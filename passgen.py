@@ -93,18 +93,27 @@ def pattern_based(args):
             logging.error("wrong template")
             break
         rep = find_repeat(args.t[pos + 1:])
-        print("res= " + charset + str(rep))
         for _ in range(rep):
             password.append(generate_char(list(charset)))
         pos = pos + 1 if rep == 1 else pos + len(str(rep)) + 3
-        print("position=" + str(pos))
     print("".join(password))
     exit(0)
 
 
 def unbracketing(bracket:str):
-    print("bracets=" + bracket)
-    return "*"
+    pos = 0
+    charset = ""
+    while pos < len(bracket):
+        if bracket[pos] in "dluLp":
+            charset = charset + placeholder2charset(bracket[pos])
+        if bracket[pos] == "\\":
+            pos += 1
+            charset = charset + bracket[pos]
+        if bracket[pos] == "^":
+            pos += 2
+            charset = charset.replace(bracket[pos], "")
+        pos += 1
+    return charset
 
 
 def find_repeat(st: str):
