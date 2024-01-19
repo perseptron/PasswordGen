@@ -39,21 +39,21 @@ def process_options(args):
 def random_based(args):
     logging.debug("starting random-based charset generation")
     charset = ""
+    password = []
     pos = 0
     while pos < len(args.S):
         if args.S[pos] == '\\':
-            charset = charset + placeholder2charset(args.S[pos+1])
+            charset = charset + placeholder2charset(args.S[pos + 1])
             pos = pos + 2
             continue
         charset = charset + args.S[pos]
         pos = pos + 1
 
     charset = dedup(charset)
-    char_source = []
 
-    for i in range(args.n):
-        char_source.append(charset)
-    print(generate(char_source))
+    for _ in range(args.n):
+        password.append(generate_char(charset))
+    print("".join(password))
 
 
 def placeholder2charset(ph: str):
@@ -76,11 +76,8 @@ def dedup(chars: str):
     return chars
 
 
-def generate(chr_set_list: list):
-    password_lst = []
-    for character in chr_set_list:
-        password_lst.append(character[random.randrange(len(character))])
-    return "".join(permutate(password_lst))
+def generate_char(charset: list):
+    return charset[random.randrange(len(charset))]
 
 
 def permutate(lst: list):
