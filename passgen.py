@@ -2,7 +2,7 @@ import argparse
 import logging
 import random
 import re
-import string
+import utils
 
 VERBOSITY = (logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG)
 
@@ -50,27 +50,17 @@ def random_based(args):
         pos = 0
         while pos < len(args.S):
             if args.S[pos] == '\\':  # for example '\d'
-                charset = charset + placeholder2charset(args.S[pos + 1])
+                charset = charset + utils.placeholder2charset(args.S[pos + 1])
                 pos = pos + 2  # moving 2 position because extra char "\"
                 continue
             charset = charset + args.S[pos]
             pos = pos + 1
 
-        charset = dedup(charset)
+        charset = utils.dedup(charset)
         for _ in range(args.n):
-            password.append(generate_char(charset))
-        print(permutate(password, args))
+            password.append(utils.generate_char(charset))
+        print(utils.permutate(password, args))
     exit(0)
-
-
-def placeholder2charset(ph: str):
-    if ph == "d": return string.digits
-    if ph == "l": return string.ascii_lowercase
-    if ph == "u": return string.ascii_uppercase
-    if ph == "L": return string.ascii_letters
-    if ph == "p": return ",.;:"
-    logging.warning("wrong placeholder")
-    return ""
 
 
 def pattern_based(args):
@@ -85,7 +75,7 @@ def pattern_based(args):
         pos = 0
         while pos < len(args.t):
             if args.t[pos] in "dluLp":  # character must be in existing placeholder
-                charset = placeholder2charset(args.t[pos])
+                charset = utils.placeholder2charset(args.t[pos])
             if args.t[pos] == "\\":  # char starting with \ will be included in password as is
                 pos += 1
                 charset = args.t[pos]
@@ -108,9 +98,9 @@ def pattern_based(args):
                 rep = 1
                 pos += 1
             for _ in range(rep):
-                password.append(generate_char(list(dedup(charset))))
+                password.append(utils.generate_char(list(utils.dedup(charset))))
 
-        print(permutate(password, args))
+        print(utils.permutate(password, args))
     exit(0)
 
 
@@ -120,7 +110,7 @@ def unbracketing(bracket: str):
     charset = ""
     while pos < len(bracket):
         if bracket[pos] in "dluLp":
-            charset = charset + placeholder2charset(bracket[pos])
+            charset = charset + utils.placeholder2charset(bracket[pos])
         if bracket[pos] == "\\":
             pos += 1
             charset = charset + bracket[pos]
@@ -140,30 +130,6 @@ def find_repeat(st: str):
         logging.error("repeat sequence lacks a closing brace '}'")
         exit(1)
     return int(match.group(1))
-
-
-def dedup(chars: str):
-    logging.debug("charset before deduplication = " + chars)
-    chars = list(set(chars))
-    logging.debug("charset after deduplication = " + "".join(sorted(chars)))
-    return chars
-
-
-def generate_char(charset: list):
-    try:
-        pass_char = charset[random.randrange(len(charset))]
-    except ValueError as error:
-        logging.warning('can\'t generate character because of "{}", skipping'.format(error))
-        pass_char = ""
-    logging.debug("generating password character '{}' using next charset {}".format(pass_char, "".join(charset)))
-    return pass_char
-
-
-def permutate(lst: list, args):
-    if args.m:
-        logging.debug("permutation")
-        random.shuffle(lst)
-    return "".join(lst)
 
 
 if __name__ == "__main__":
