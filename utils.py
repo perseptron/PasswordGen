@@ -9,6 +9,22 @@ def placeholder2charset(ph: str):
     if ph == "u": return string.ascii_uppercase
     if ph == "L": return string.ascii_letters
     if ph == "p": return ",.;:"
+    if ph == "a": return string.ascii_lowercase + string.digits
+    if ph == "A": return string.ascii_letters + string.digits
+    if ph == "U": return string.ascii_uppercase + string.digits
+    if ph == "h": return '0123456789abcdef'
+    if ph == "H": return '0123456789ABCDEF'
+    if ph == "v": return 'aeiou'
+    if ph == "V": return 'AEIOUaeiou'
+    if ph == "Z": return 'AEIOU'
+    if ph == "c": return 'bcdfghjklmnpqrstvwxyz'
+    if ph == "C": return 'BCDFGHJKLMNPQRSTVWXYZ bcdfghjklmnpqrstvwxyz'
+    if ph == "z": return 'BCDFGHJKLMNPQRSTVWXYZ'
+    if ph == "b": return '()[]{}<>'
+    if ph == "s": return string.punctuation
+    if ph == "S": return string.ascii_letters + string.digits + string.punctuation
+    if ph == "x": return r"""¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"""
+
     logging.warning("wrong placeholder")
     return ""
 

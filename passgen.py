@@ -75,7 +75,7 @@ def pattern_based(args):
         password = []
         pos = 0
         while pos < len(args.t):
-            if args.t[pos] in "dluLp":  # character must be in existing placeholder
+            if args.t[pos] in "dluLpaAUhHvVZcCzbspx":  # character must insist in existing placeholder
                 charset = utils.placeholder2charset(args.t[pos])
             if args.t[pos] == "\\":  # char starting with \ will be included in password as is
                 pos += 1
@@ -105,6 +105,8 @@ def pattern_based(args):
 
 
 def file_based(args):
+    """This method generate passwords using list of patterns from the file. Rules for patterns are the same as in
+    pattern-based method"""
     filename = args.f
     try:
         with open(filename, "r") as file:
@@ -113,7 +115,7 @@ def file_based(args):
                 args.t = line.rstrip()
                 pattern_based(args)
     except FileNotFoundError as error:
-        logging.error("Can't proceed in file-based mode {}".format(error))
+        logging.error("Can't proceed with file-based mode {}".format(error))
         exit(1)
 
 
@@ -122,7 +124,7 @@ def unbracketing(bracket: str):
     pos = 0
     charset = ""
     while pos < len(bracket):
-        if bracket[pos] in "dluLp":
+        if bracket[pos] in "dluLpaAUhHvVZcCzbspx":
             charset = charset + utils.placeholder2charset(bracket[pos])
         if bracket[pos] == "\\":
             pos += 1
