@@ -1,6 +1,5 @@
 import argparse
 import logging
-import random
 import re
 import utils
 
@@ -21,10 +20,10 @@ def main():
                                    "literal, \\u for big literal, \\L for combination small and big letters and \\p "
                                    "for punctuation symbols", default="\\L\\d")
 
-    parser.add_argument("-t", help="Set template for passwords", default="LLllddpp")
+    parser.add_argument("-t", help="Set template for passwords")
     parser.add_argument("-f", help="Getting list of patterns from file and generate for each random password")
     parser.add_argument("-c", help="Number of passwords to generate", type=int, default=1)
-    parser.add_argument("-m", help="Do not mix up (permutate) final result ", action="store_false")
+    parser.add_argument("-m", help="Do not mix up (permutate) final result ", action="store_true")
     parser.add_argument("-v", help="Set verbosity level", action="count", default=0)
     args = parser.parse_args()
     logging.basicConfig(level=VERBOSITY[args.v])
@@ -37,6 +36,9 @@ def process_options(args):
         random_based(args)
     if args.t:
         pattern_based(args)
+    if args.f:
+        file_based(args)
+    exit(0)
 
 
 def random_based(args):
@@ -60,7 +62,6 @@ def random_based(args):
         for _ in range(args.n):
             password.append(utils.generate_char(charset))
         print(utils.permutate(password, args))
-    exit(0)
 
 
 def pattern_based(args):
@@ -101,7 +102,19 @@ def pattern_based(args):
                 password.append(utils.generate_char(list(utils.dedup(charset))))
 
         print(utils.permutate(password, args))
-    exit(0)
+
+
+def file_based(args):
+    filename = args.f
+    try:
+        with open(filename, "r") as file:
+            while line := file.readline():
+                logging.debug("file pattern = {}".format(line.rstrip()))
+                args.t = line.rstrip()
+                pattern_based(args)
+    except FileNotFoundError as error:
+        logging.error("Can't proceed in file-based mode {}".format(error))
+        exit(1)
 
 
 def unbracketing(bracket: str):
