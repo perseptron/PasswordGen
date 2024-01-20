@@ -1,7 +1,8 @@
-# -S: character set
+
 import argparse
 import logging
 import random
+import re
 import string
 
 VERBOSITY = (logging.ERROR, logging.WARNING, logging.INFO, logging.DEBUG)
@@ -16,7 +17,7 @@ def main():
                                      epilog="Thanks for using %(prog)s! :)", )
     simple = parser.add_argument_group("simple method generate random password from set {small literal "
                                        "ASCII, big literal ASCII, digit}")
-    simple.add_argument('-n', help="Set length of password", type=int, default=8)
+    simple.add_argument('-n', help="Set length of password", type=int)
     simple.add_argument("-S", help="define character set, you can use placeholders \\d for digits, \\l for small "
                                    "literal, \\u for big literal, \\L for combination small and big letters and \\p "
                                    "for punctuation symbols", default="\\L\\d")
@@ -24,6 +25,7 @@ def main():
     parser.add_argument("-t", help="Set template for generate passwords", default="LLllddpp")
     parser.add_argument("-f", help="Getting list of patterns from file and generate for each random password")
     parser.add_argument("-c", help="number of passwords", type=int, default=1)
+    parser.add_argument("-m", help="do not mix up (permutate) final result ", action="store_false")
     parser.add_argument("-v", help="set verbosity level", action="count", default=0)
     args = parser.parse_args()
     logging.basicConfig(level=VERBOSITY[args.v])
@@ -34,6 +36,8 @@ def main():
 def process_options(args):
     if args.n:
         random_based(args)
+    if args.t:
+        pattern_based(args)
 
 
 def random_based(args):
@@ -50,10 +54,10 @@ def random_based(args):
         pos = pos + 1
 
     charset = dedup(charset)
-
     for _ in range(args.n):
         password.append(generate_char(charset))
     print("".join(password))
+    exit(0)
 
 
 def placeholder2charset(ph: str):
@@ -69,6 +73,59 @@ def placeholder2charset(ph: str):
         return ",.;:"
 
 
+def pattern_based(args):
+    logging.debug("starting pattern-based password generation")
+    charset = None
+    password = []
+    pos = 0
+    while pos < len(args.t):
+        if args.t[pos] in "dluLp":
+            charset = placeholder2charset(args.t[pos])
+        if args.t[pos] == "\\":
+            pos += 1
+            charset = args.t[pos]
+        if args.t[pos] == "[":
+            start_pos = pos
+            end_pos = args.t[pos:].find("]")
+            pos = pos + end_pos
+            charset = unbracketing(args.t[start_pos + 1:pos])
+        if charset is None:
+            logging.error("wrong template")
+            break
+        if pos + 1 < len(args.t) and args.t[pos + 1] == "{":
+            rep = find_repeat(args.t[pos + 1:])
+            pos = pos + len(str(rep)) + 3
+        else:
+            rep = 1
+            pos += 1
+        for _ in range(rep):
+            password.append(generate_char(list(charset)))
+
+    print("".join(password))
+    exit(0)
+
+
+def unbracketing(bracket:str):
+    pos = 0
+    charset = ""
+    while pos < len(bracket):
+        if bracket[pos] in "dluLp":
+            charset = charset + placeholder2charset(bracket[pos])
+        if bracket[pos] == "\\":
+            pos += 1
+            charset = charset + bracket[pos]
+        if bracket[pos] == "^":
+            pos += 2
+            charset = charset.replace(bracket[pos], "")
+        pos += 1
+    return charset
+
+
+def find_repeat(st: str):
+    match = re.search(r'^\{(\d+)\}', st)
+    return int(match.group(1)) if match else 1
+
+
 def dedup(chars: str):
     logging.debug("charset before deduplication = " + chars)
     chars = list(set(chars))
@@ -80,9 +137,11 @@ def generate_char(charset: list):
     return charset[random.randrange(len(charset))]
 
 
-def permutate(lst: list):
-    logging.debug("permutation")
-    return random.sample(lst, len(lst))
+def permutate(lst: list, args):
+    if args.m:
+        logging.debug("permutation")
+        random.sample(lst, len(lst))
+    return "".join(lst)
 
 
 if __name__ == "__main__":
