@@ -24,6 +24,7 @@ def placeholder2charset(ph: str):
     if ph == "s": return string.punctuation
     if ph == "S": return string.ascii_letters + string.digits + string.punctuation
     if ph == "x": return r"""¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"""
+    if ph == "Q": return 'ABCEHIKMOPTX'
 
     logging.warning("wrong placeholder")
     return ""

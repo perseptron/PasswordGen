@@ -1,5 +1,6 @@
 import argparse
 import logging
+import random
 import re
 import utils
 
@@ -74,8 +75,10 @@ def pattern_based(args):
         charset = None
         password = []
         pos = 0
+        rep = 1
+        skip_next = False
         while pos < len(args.t):
-            if args.t[pos] in "dluLpaAUhHvVZcCzbspx":  # character must insist in existing placeholder
+            if args.t[pos] in "dluLpaAUhHvVZcCzbspxQ":  # character must insist in existing placeholder
                 charset = utils.placeholder2charset(args.t[pos])
             if args.t[pos] == "\\":  # char starting with \ will be included in password as is
                 pos += 1
@@ -89,6 +92,16 @@ def pattern_based(args):
                     exit(1)
                 pos = pos + end_pos
                 charset = unbracketing(args.t[start_pos + 1:pos])
+            if args.t[pos] == "|" and args.t[pos -1 ] != '\\':  # among two charsets choose one randomly
+                logging.info("inside |")
+                if random.choice([True, False]):
+                    skip_next = True
+                    logging.debug("choose left side")
+                else:
+                    password = password[:-rep]
+                    logging.debug("choose right side")
+                pos += 1
+                continue
             if charset is None:
                 logging.error("wrong template")
                 break
@@ -99,8 +112,9 @@ def pattern_based(args):
                 rep = 1
                 pos += 1
             for _ in range(rep):
-                password.append(utils.generate_char(list(utils.dedup(charset))))
-
+                if not skip_next:
+                    password.append(utils.generate_char(list(utils.dedup(charset))))
+            skip_next = False
         print(utils.permutate(password, args))
 
 
@@ -124,7 +138,7 @@ def unbracketing(bracket: str):
     pos = 0
     charset = ""
     while pos < len(bracket):
-        if bracket[pos] in "dluLpaAUhHvVZcCzbspx":
+        if bracket[pos] in "dluLpaAUhHvVZcCzbspxQ":
             charset = charset + utils.placeholder2charset(bracket[pos])
         if bracket[pos] == "\\":
             pos += 1

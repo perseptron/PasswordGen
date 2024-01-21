@@ -11,3 +11,5 @@ u{4}d{3}\-l{2}
 u{4}[dl]{3}\-l{2}
 \H\e\x\:\ HHHHHH
 \M\A\C\:\ HH\-HH\-HH\-HH\-HH\-HH
+\c\a\r\ \p\l\a\t\e\:\ QQddddQQ
+\t\o\ \B|\C\ \o\r\ \n\o\t\ \t\o\ \B|\C
